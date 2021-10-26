@@ -1,0 +1,27 @@
+{
+	"name": "kernl/power-analytics",
+	"type": "library",
+	"description": "A PHP & WordPress library for sending analytics data to WP Power Analytics",
+	"keywords": [
+        "wordpress analytics",
+        "php analytics",
+        "WP Power Analytics"
+    ],
+	"homepage": "https://github.com/vital101/power-analytics-php-library",
+	"license": "MIT",
+	"authors": [
+		{
+			"name": "Jack Slingerland",
+			"email": "jack@kernl.us",
+			"homepage": "https://kernl.us",
+			"role": "Developer"
+		}
+	],
+	"require": {
+		"php": ">=5.2.0",
+		"ext-json": "*"
+	},
+	"autoload": {
+		"files": ["power_analytics.php"]
+	}
+}
