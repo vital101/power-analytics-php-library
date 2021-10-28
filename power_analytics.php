@@ -1,4 +1,8 @@
 <?php
+//
+// WP Power Analytics
+// v1.1.0
+//
 if (! class_exists('WordPressPowerAnalytics')) {
 
     class WordPressPowerAnalytics {
@@ -23,6 +27,7 @@ if (! class_exists('WordPressPowerAnalytics')) {
         private function get_analytics_data() {
             global $wp_version;
             return array(
+                "date" => $this->get_date(),
                 "product_uuid" => $this->productUUID,
                 "product_type" => $this->get_product_type(),
                 "product_version" => $this->get_installed_version(),
@@ -34,6 +39,10 @@ if (! class_exists('WordPressPowerAnalytics')) {
                 "installed_plugins" => $this->get_all_plugins(),
                 "installed_theme" => $this->get_theme()
             );
+        }
+
+        private function get_date() {
+            return date("Y-m-d");
         }
 
         private function get_product_type() {
@@ -53,18 +62,17 @@ if (! class_exists('WordPressPowerAnalytics')) {
         }
 
         private function should_send_analytics_data($transientKey) {
-            return true;
-            // if (get_transient($transientKey) === 'exists') {
-            //     return false;
-            // } else {
-            //     $sixHours = 21600;
-            //     set_transient($transientKey, 'exists', $sixHours);
-            //     return true;
-            // }
+            if (get_transient($transientKey) === 'exists') {
+                return false;
+            } else {
+                $sixHours = 21600;
+                set_transient($transientKey, 'exists', $sixHours);
+                return true;
+            }
         }
 
         private function send_data($data) {
-            $endpoint = 'https://power-analytics-cloudflare-worker.kernl.workers.dev/';
+            $endpoint = 'https://wp-poweranalytics.com/ingest/v1';
             $body = wp_json_encode($data);
             $options = [
                 'body' => $body,
