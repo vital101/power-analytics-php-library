@@ -1,7 +1,7 @@
 <?php
 //
 // WP Power Analytics
-// v1.1.0
+// v1.2.0
 //
 if (! class_exists('WordPressPowerAnalytics')) {
 
@@ -9,11 +9,20 @@ if (! class_exists('WordPressPowerAnalytics')) {
         private $productUUID;
         private $absolutePath;
         private $slug;
+        private $events = array();
+        private $sessionUUID;
+        private $sessionStartTime;
 
         function __construct($productUUID, $absolutePath, $slug) {
             $this->productUUID = $productUUID;
             $this->absolutePath = $absolutePath;
             $this->slug = $slug;
+        }
+
+        function __destruct() {
+            if (count($this->events) > 0) {
+                $this->send_events();
+            }
         }
 
         public function initialize() {
@@ -22,6 +31,19 @@ if (! class_exists('WordPressPowerAnalytics')) {
                 $dataToSend = $this->get_analytics_data();
                 $this->send_data($dataToSend);
             }
+
+            $this->sessionUUID = $this->get_or_create_session();
+        }
+
+        public function track($eventName, $eventValue) {
+            $now = new DateTime();
+            $now->setTimezone(new DateTimeZone('America/New_York'));
+            $evt = array(
+                "name" => $eventName,
+                "value" => $eventValue,
+                "created" => $now->format('Y-m-d H:i:sP')
+            );
+            array_push($this->events, $evt);
         }
 
         private function get_analytics_data() {
@@ -57,6 +79,27 @@ if (! class_exists('WordPressPowerAnalytics')) {
             return "unknown";
         }
 
+        private function get_or_create_session() {
+            $key = $this->get_transient_key() . "-events";
+            $transientData = get_transient($key);
+            if ($transientData) {
+                $data = json_decode($transientData, true);
+                $this->sessionStartTime = $data["sessionStartTime"];
+                return $data["uuid"];
+            } else {
+                $uuid = $this->get_uuid();
+                $now = new DateTime();
+                $now->setTimezone(new DateTimeZone('America/New_York'));
+                $data = array(
+                    "uuid" => $uuid,
+                    "sessionStartTime" => $now->format('Y-m-d H:i:sP')
+                );
+                set_transient($key, json_encode($data), 60 * 10);
+                $this->sessionStartTime = $data["sessionStartTime"];
+                return $uuid;
+            }
+        }
+
         private function get_transient_key() {
             return "wp-power-analytics-{$this->productUUID}";
         }
@@ -73,6 +116,32 @@ if (! class_exists('WordPressPowerAnalytics')) {
 
         private function send_data($data) {
             $endpoint = 'https://wp-poweranalytics.com/ingest/v1';
+            $body = wp_json_encode($data);
+            $options = [
+                'body' => $body,
+                'headers' => [
+                    'Content-Type' => 'application/json',
+                ],
+                'timeout' => 5,
+                'redirection' => 5,
+                'blocking' => false,
+                'httpversion' => '1.0',
+                'sslverify' => false,
+                'data_format' => 'body',
+            ];
+            wp_remote_post($endpoint, $options);
+        }
+
+        private function send_events() {
+            $data = array(
+                "session" => array(
+                    "uuid" => $this->sessionUUID,
+                    "start" => $this->sessionStartTime
+                ),
+                "product_uuid" => $this->productUUID,
+                "events" => $this->events
+            );
+            $endpoint = 'https://wp-poweranalytics.com/ingest/v1/events';
             $body = wp_json_encode($data);
             $options = [
                 'body' => $body,
@@ -172,6 +241,13 @@ if (! class_exists('WordPressPowerAnalytics')) {
             global $wpdb;
             $results = $wpdb->get_results('SELECT VERSION() as version');
             return $results[0]->version;
+        }
+
+        private function get_uuid() {
+            $data = PHP_MAJOR_VERSION < 7 ? openssl_random_pseudo_bytes(16) : random_bytes(16);
+            $data[6] = chr(ord($data[6]) & 0x0f | 0x40);    // Set version to 0100
+            $data[8] = chr(ord($data[8]) & 0x3f | 0x80);    // Set bits 6-7 to 10
+            return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
         }
 
     }
