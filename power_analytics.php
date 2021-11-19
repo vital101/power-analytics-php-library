@@ -1,7 +1,7 @@
 <?php
 //
 // WP Power Analytics
-// v1.2.0
+// v1.2.1
 //
 if (! class_exists('WordPressPowerAnalytics')) {
 

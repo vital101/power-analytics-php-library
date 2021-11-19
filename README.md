@@ -1,21 +1,25 @@
-# WP Power Analytics Lib
+# WP Power Analytics WordPress Lib
 
-This is the WP Power Analytics PHP library for integrating with WordPress and other PHP projects.
+This is the WP Power Analytics PHP library for integrating with WordPress.
 
 ## Usage
 
-Initialize the library as early as possible in your plugin code.
+Initialize the library as early as possible in your plugin or theme code.
 
     require plugin_dir_path( __FILE__ ) . "includes/power_analytics.php";
     $powerAnalyticsUUID = "Your Power Analytics Product UUID";
-    $PowerAnalytics = new WordPressPowerAnalytics(
+    $MyPlugin_PowerAnalytics = new WordPressPowerAnalytics(
         $powerAnalyticsUUID,
         __FILE__,
-        "your-plugin-sluhg"
+        "your-plugin-slug"
     );
-    $PowerAnalytics->initialize();
+    $MyPlugin_PowerAnalytics->initialize();
 
 ## Event Tracking
 
-    global $PowerAnalytics;
-	$PowerAnalytics->track($eventName, $eventValue);
+    global $MyPlugin_PowerAnalytics;
+	$MyPlugin_PowerAnalytics->track($eventName, $eventValue);
+
+## Why the "MyPlugin_" in the instance variable?
+
+It's likely that other plugins a user has installed will use WP Power Analytics. To avoid collisions, try to explicitly namespace your WordPressPowerAnalytics instance variable.
