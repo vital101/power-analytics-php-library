@@ -2,6 +2,8 @@
 
 This is the WP Power Analytics PHP library for integrating with WordPress.
 
+> The current version is **1.3.0**
+
 ## Usage
 
 Initialize the library as early as possible in your plugin or theme code.

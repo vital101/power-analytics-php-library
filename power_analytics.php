@@ -1,7 +1,7 @@
 <?php
 //
 // WP Power Analytics
-// v1.2.1
+// v1.3.0
 //
 if (! class_exists('WordPressPowerAnalytics')) {
 
@@ -115,7 +115,7 @@ if (! class_exists('WordPressPowerAnalytics')) {
         }
 
         private function send_data($data) {
-            $endpoint = 'https://wp-poweranalytics.com/ingest/v1';
+            $endpoint = 'https://ingest.wp-poweranalytics.com/v1';
             $body = wp_json_encode($data);
             $options = [
                 'body' => $body,
@@ -141,7 +141,7 @@ if (! class_exists('WordPressPowerAnalytics')) {
                 "product_uuid" => $this->productUUID,
                 "events" => $this->events
             );
-            $endpoint = 'https://wp-poweranalytics.com/ingest/v1/events';
+            $endpoint = 'https://ingest.wp-poweranalytics.com/v1/events';
             $body = wp_json_encode($data);
             $options = [
                 'body' => $body,
